@@ -4,7 +4,7 @@ const { triggerCall } = require("../controllers/callController");
 const {
   handleVoice,
   handleVoiceResponse,
-  // handleStatusCallback will come later
+  handleStatusCallback,
 } = require("../controllers/webhookController");
 
 const router = express.Router();
@@ -12,5 +12,6 @@ const router = express.Router();
 router.post("/calls", triggerCall);
 router.post("/voice", handleVoice);
 router.post("/voice-response", handleVoiceResponse);
+router.post("/status-callback", handleStatusCallback);
 
 module.exports = router;

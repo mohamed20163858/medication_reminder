@@ -1,4 +1,6 @@
 // src/controllers/webhookController.js
+const client = require("../services/twilioClient");
+const { twilio } = require("../utils/env");
 const {
   twiml: { VoiceResponse },
 } = require("twilio");
@@ -66,8 +68,36 @@ function handleVoiceResponse(req, res) {
   res.type("text/xml").send(response.toString());
 }
 
+/**
+ * POST /status-callback
+ * Twilio will POST here when the call completes
+ */
+async function handleStatusCallback(req, res) {
+  const callSid = req.body.CallSid;
+  const status = req.body.CallStatus; // e.g., completed, no-answer, busy, failed
+  const to = req.body.To;
+
+  if (status === "no-answer" || status === "failed") {
+    // Send SMS fallback
+    await client.messages.create({
+      to,
+      from: twilio.phoneNumber,
+      body:
+        "We called to check on your medication but could not reach you. " +
+        "Please call us back or take your medications if you have not done so.",
+    });
+    logCall({ callSid, status: "sms sent" });
+  } else {
+    // For answered/completed, we already logged in /voice-response
+    logCall({ callSid, status });
+  }
+
+  // Twilio expects a 200
+  res.sendStatus(200);
+}
+
 module.exports = {
   handleVoice,
   handleVoiceResponse,
-  // we'll add handleStatusCallback next
+  handleStatusCallback,
 };
