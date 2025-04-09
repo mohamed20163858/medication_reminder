@@ -44,4 +44,30 @@ function handleVoice(req, res) {
   res.type("text/xml").send(response.toString());
 }
 
-module.exports = { handleVoice };
+/**
+ * POST /voice-response
+ * Twilio will POST here after gathering speech
+ */
+function handleVoiceResponse(req, res) {
+  const response = new VoiceResponse();
+
+  const callSid = req.body.CallSid;
+  const speech = req.body.SpeechResult || "";
+  // Log the answered call and the patient's transcript
+  logCall({
+    callSid,
+    status: "answered",
+    speechText: speech,
+  });
+
+  // Thank the patient
+  response.say("Thank you. Have a nice day.");
+
+  res.type("text/xml").send(response.toString());
+}
+
+module.exports = {
+  handleVoice,
+  handleVoiceResponse,
+  // we'll add handleStatusCallback next
+};
